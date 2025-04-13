@@ -3,7 +3,6 @@ from openai import OpenAI
 import requests
 import json
 import os
-import subprocess
 import glob
 from pathlib import Path
 import shutil
@@ -48,21 +47,6 @@ def list_files(directory="."):
     except Exception as e:
         return f"Error listing files: {str(e)}"
 
-def run_command(command):
-    """Execute a shell command and return the output"""
-    # print(f"🔨 Tool Called: run_command {command}")
-    try:
-        result = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True
-        )
-        output = f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
-        return output
-    except Exception as e:
-        return f"Error executing command: {str(e)}"
-
 def create_directory(directory_path):
     """Create a directory structure"""
     # print(f"🔨 Tool Called: create_directory {directory_path}")
@@ -100,10 +84,6 @@ available_tools = {
         "fn": list_files,
         "description": "Lists files in a directory, recursively by default"
     },
-    "run_command": {
-        "fn": run_command,
-        "description": "Executes a shell command and returns the output"
-    },
     "create_directory": {
         "fn": create_directory,
         "description": "Creates a directory structure (including nested directories)"
@@ -125,7 +105,6 @@ system_prompt = """
     CAPABILITIES:
     - Generate project structures (create directories and files)
     - Write code for both frontend and backend components
-    - Run installation and build commands
     - Read and modify existing code to add new features
     - Understand project context by examining files
     
@@ -150,23 +129,22 @@ system_prompt = """
     - read_file: Reads the contents of a file at the given file path
     - write_file: Writes content to a file at the given file path, creating directories if needed
     - list_files: Lists files in a directory, recursively by default
-    - run_command: Executes a shell command and returns the output
     - create_directory: Creates a directory structure (including nested directories)
     - delete_file: Deletes the specified file
     
     Example:
     User Query: Create a simple React app with a homepage
-    Output: {{ "step": "plan", "content": "I'll help you create a simple React app with a homepage. First, I'll check if you have Node.js and npm installed." }}
-    Output: {{ "step": "action", "function": "run_command", "input": "node -v && npm -v" }}
-    Output: {{ "step": "observe", "output": "v16.15.0\\n8.5.5" }}
-    Output: {{ "step": "plan", "content": "Great! Node.js and npm are installed. Now I'll create a new React app using create-react-app." }}
-    Output: {{ "step": "action", "function": "run_command", "input": "npx create-react-app my-app" }}
-    Output: {{ "step": "observe", "output": "Success! Created my-app at /home/user/my-app..." }}
-    Output: {{ "step": "plan", "content": "Now I'll modify the homepage component to customize it." }}
-    Output: {{ "step": "action", "function": "read_file", "input": "my-app/src/App.js" }}
+    Output: {{ "step": "plan", "content": "I'll help you create a simple React app with a homepage. First, I'll examine the workspace structure." }}
+    Output: {{ "step": "action", "function": "list_files", "input": "." }}
+    Output: {{ "step": "observe", "output": "[\".\", \"./src\", \"./src/components\"]" }}
+    Output: {{ "step": "plan", "content": "Now I'll create a new homepage component." }}
+    Output: {{ "step": "action", "function": "write_file", "input": "src/components/Homepage.js", "content": "import React from 'react'..." }}
+    Output: {{ "step": "observe", "output": "Successfully wrote to src/components/Homepage.js" }}
+    Output: {{ "step": "plan", "content": "Let's update the App.js file to include our new homepage" }}
+    Output: {{ "step": "action", "function": "read_file", "input": "src/App.js" }}
     Output: {{ "step": "observe", "output": "import React from 'react'..." }}
-    Output: {{ "step": "action", "function": "write_file", "input": "my-app/src/App.js", "content": "import React from 'react'..." }}
-    Output: {{ "step": "output", "content": "I've created a React app with a customized homepage. You can start the development server with 'cd my-app && npm start'." }}
+    Output: {{ "step": "action", "function": "write_file", "input": "src/App.js", "content": "import React from 'react'..." }}
+    Output: {{ "step": "output", "content": "I've created a React app with a customized homepage. The component has been added and the App.js has been updated to include it." }}
 """
 
 messages = [
