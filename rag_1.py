@@ -2,7 +2,13 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pathlib import Path
 from langchain_huggingface import HuggingFaceEmbeddings 
+from langchain_google_genai import GoogleGenerativeAIEmbeddings  
 from langchain_qdrant import QdrantVectorStore
+import os
+
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("Please set the GEMINI_API_KEY environment variable")
 
 pdf_path = Path(__file__).parent / "nodejs.pdf"
 loader = PyPDFLoader(pdf_path)
@@ -15,7 +21,9 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 split_docs = text_splitter.split_documents(documents)
 
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
+
+# embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 # vector_store = QdrantVectorStore.from_documents(
 #     documents=[],
@@ -30,7 +38,7 @@ embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 retriever = QdrantVectorStore.from_existing_collection(
     url = "http://localhost:6333",
-    collection_name="trying_langchain",
+    collection_name="trying_langchain_gemini",
     embedding=embeddings,
 )
 
