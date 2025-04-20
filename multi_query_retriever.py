@@ -12,26 +12,24 @@ logging.basicConfig()
 logging.getLogger("langchain.retrievers.multi_query").setLevel(logging.INFO)
 
 
-# Ensure GOOGLE_API_KEY is set if GEMINI_API_KEY is available
-if "GOOGLE_API_KEY" not in os.environ and "GEMINI_API_KEY" in os.environ:
+if "GEMINI_API_KEY" in os.environ:
     os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
 
 # 1. Load and Prepare Data
 pdf_path = Path(__file__).parent / "nodejs.pdf"
 loader = PyPDFLoader(pdf_path)
 data = loader.load()
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
 splits = text_splitter.split_documents(data)
 
 # 2. Embed and Store in Qdrant Vector Database
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-qdrant_url = "http://localhost:6333"
-collection_name = "langchain_gemini_demo"
+
 db = QdrantVectorStore.from_documents(
     documents=splits,
     embedding=embeddings,
-    url=qdrant_url,
-    collection_name=collection_name,
+    url="http://localhost:6333",
+    collection_name="langchain_gemini_demo",
 )
 
 # 3. Define the Gemini LLM
