@@ -29,7 +29,7 @@ db = QdrantVectorStore.from_documents(
     documents=splits,
     embedding=embeddings,
     url="http://localhost:6333",
-    collection_name="langchain_gemini_demo",
+    collection_name="langchain_gemini_demo_1",
 )
 
 # 3. Define the Gemini LLM
