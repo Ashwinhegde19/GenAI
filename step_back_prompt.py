@@ -1,14 +1,11 @@
 import os
 import google.generativeai as genai
 
-# Load your Gemini API Key
 api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 
-# Use Gemini Flash 2.0
 model = genai.GenerativeModel('gemini-2.0-flash')
 
-# Original specific question
 original_question = "What makes Dhoni a successful cricket captain?"
 print("Original Question",original_question)
 
